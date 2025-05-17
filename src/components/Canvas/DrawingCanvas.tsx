@@ -173,7 +173,7 @@ const DrawingCanvas: React.FC = () => {
       <CanvasToolbar />
       <div 
         ref={containerRef}
-        className="flex-1 relative overflow-hidden bg-white border border-gray-200 rounded-md shadow-inner"
+        className="flex-1 relative overflow-hidden bg-white border border-gray-200 rounded-md shadow-inner min-h-[60vh]"
       >
         <canvas
           ref={canvasRef}
