@@ -13,7 +13,6 @@ const CollaboratorsPanel: React.FC = () => {
   const [inviteEmail, setInviteEmail] = useState('');
   const [showInviteForm, setShowInviteForm] = useState(false);
   
-  // Mock collaborators data
   const collaborators: Collaborator[] = [
     {
       id: '1',
@@ -37,7 +36,6 @@ const CollaboratorsPanel: React.FC = () => {
   
   const handleInvite = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would send an invitation
     alert(`Invitation sent to ${inviteEmail}`);
     setInviteEmail('');
     setShowInviteForm(false);
@@ -46,7 +44,7 @@ const CollaboratorsPanel: React.FC = () => {
   return (
     <div className={`fixed right-0 top-20 bg-white border-l border-t border-b border-gray-200 rounded-l-md shadow-md transition-all duration-300 z-10 ${
       isExpanded ? 'w-64' : 'w-12'
-    }`}>
+    } sm:top-24`}>
       <div className="p-2 border-b border-gray-200 flex items-center justify-between">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
