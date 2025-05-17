@@ -11,20 +11,16 @@ const CanvasPage: React.FC = () => {
   const { canvases, setCurrentCanvas, fetchCanvases } = useCanvasStore();
   
   useEffect(() => {
-    // Fetch canvases if not already loaded
     if (canvases.length === 0) {
       fetchCanvases();
     }
     
-    // Set current canvas based on ID
     if (id && id !== 'new') {
       const canvas = canvases.find(c => c.id === id);
       if (canvas) {
         setCurrentCanvas(canvas);
       }
     } else {
-      // For new canvas, we would create one in a real app
-      // For now, just use a mock
       setCurrentCanvas({
         id: 'new',
         title: 'Untitled Canvas',
@@ -38,16 +34,16 @@ const CanvasPage: React.FC = () => {
   }, [id, canvases, fetchCanvases, setCurrentCanvas]);
   
   return (
-    <div className="h-screen pt-16 pb-0 px-4 sm:px-6 lg:px-8 flex flex-col">
+    <div className="min-h-screen pt-16 pb-0 px-2 sm:px-6 lg:px-8 flex flex-col">
       <div className="flex-1 flex flex-col lg:flex-row gap-4 overflow-hidden">
-        <div className="lg:w-3/4 flex flex-col">
+        <div className="lg:w-3/4 flex flex-col h-[calc(100vh-5rem)]">
           <DrawingCanvas />
-          <div className="mt-4">
+          <div className="mt-4 overflow-y-auto">
             <SuggestionsPanel />
           </div>
         </div>
         
-        <div className="lg:w-1/4 flex-shrink-0">
+        <div className="lg:w-1/4 flex-shrink-0 h-[calc(100vh-5rem)] overflow-y-auto">
           <CommentsPanel />
         </div>
       </div>

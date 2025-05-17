@@ -9,7 +9,8 @@ import {
   Download, 
   Share2, 
   ChevronDown,
-  Sparkles
+  Sparkles,
+  Menu
 } from 'lucide-react';
 import { useSuggestionsStore } from '../../store/suggestionsStore';
 
@@ -28,32 +29,37 @@ const CanvasToolbar: React.FC = () => {
   const [showBrushSizes, setShowBrushSizes] = useState(false);
   const [promptInput, setPromptInput] = useState('');
   const [showPromptInput, setShowPromptInput] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   
   const brushSizes = [2, 5, 10, 15, 20];
   
   const handleColorClick = () => {
     setShowColorPicker(!showColorPicker);
     setShowBrushSizes(false);
+    setShowMobileMenu(false);
   };
   
   const handleBrushClick = () => {
     setShowBrushSizes(!showBrushSizes);
     setShowColorPicker(false);
+    setShowMobileMenu(false);
   };
   
   const handleEraserClick = () => {
     setCurrentColor('#ffffff');
+    setShowMobileMenu(false);
   };
   
   const handleClearCanvas = () => {
     if (window.confirm('Are you sure you want to clear the canvas?')) {
       clearCanvas();
     }
+    setShowMobileMenu(false);
   };
   
   const handleSaveClick = () => {
-    // In a real app, this would save to the backend
     alert('Canvas saved successfully!');
+    setShowMobileMenu(false);
   };
   
   const handleDownloadClick = () => {
@@ -65,11 +71,12 @@ const CanvasToolbar: React.FC = () => {
     link.download = 'artwork.png';
     link.href = dataUrl;
     link.click();
+    setShowMobileMenu(false);
   };
   
   const handleShareClick = () => {
-    // In a real app, this would generate a shareable link
     alert('Shareable link copied to clipboard!');
+    setShowMobileMenu(false);
   };
   
   const handleAIPrompt = () => {
@@ -77,11 +84,12 @@ const CanvasToolbar: React.FC = () => {
       generateSuggestion(promptInput);
       setPromptInput('');
       setShowPromptInput(false);
+      setShowMobileMenu(false);
     }
   };
   
-  return (
-    <div className="bg-white border border-gray-200 rounded-md p-2 mb-4 flex flex-wrap items-center justify-between">
+  const toolbarContent = (
+    <>
       <div className="flex space-x-2">
         <div className="relative">
           <button
@@ -98,7 +106,7 @@ const CanvasToolbar: React.FC = () => {
           </button>
           
           {showColorPicker && (
-            <div className="absolute top-full left-0 mt-2 z-10 bg-white rounded-md shadow-lg p-3 border border-gray-200">
+            <div className="absolute top-full left-0 mt-2 z-20 bg-white rounded-md shadow-lg p-3 border border-gray-200">
               <HexColorPicker color={currentColor} onChange={setCurrentColor} />
             </div>
           )}
@@ -116,7 +124,7 @@ const CanvasToolbar: React.FC = () => {
           </button>
           
           {showBrushSizes && (
-            <div className="absolute top-full left-0 mt-2 z-10 bg-white rounded-md shadow-lg p-2 border border-gray-200">
+            <div className="absolute top-full left-0 mt-2 z-20 bg-white rounded-md shadow-lg p-2 border border-gray-200">
               <div className="flex flex-col space-y-2">
                 {brushSizes.map(size => (
                   <button
@@ -129,9 +137,7 @@ const CanvasToolbar: React.FC = () => {
                       currentWidth === size ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-gray-100'
                     }`}
                   >
-                    <div 
-                      className="w-6 h-6 flex items-center justify-center"
-                    >
+                    <div className="w-6 h-6 flex items-center justify-center">
                       <div 
                         className="rounded-full bg-black" 
                         style={{ 
@@ -165,11 +171,11 @@ const CanvasToolbar: React.FC = () => {
             title="AI Suggestions"
           >
             <Sparkles className="h-5 w-5 mr-1" />
-            <span>AI Suggest</span>
+            <span className="hidden sm:inline">AI Suggest</span>
           </button>
           
           {showPromptInput && (
-            <div className="absolute top-full right-0 mt-2 z-10 bg-white rounded-md shadow-lg p-3 border border-gray-200 w-64">
+            <div className="absolute top-full right-0 mt-2 z-20 bg-white rounded-md shadow-lg p-3 border border-gray-200 w-64">
               <div className="flex flex-col space-y-2">
                 <input
                   type="text"
@@ -220,6 +226,91 @@ const CanvasToolbar: React.FC = () => {
         >
           <Trash2 className="h-5 w-5" />
         </button>
+      </div>
+    </>
+  );
+  
+  return (
+    <div className="bg-white border border-gray-200 rounded-md p-2 mb-4">
+      <div className="hidden sm:flex sm:items-center sm:justify-between">
+        {toolbarContent}
+      </div>
+      
+      <div className="sm:hidden">
+        <div className="flex items-center justify-between">
+          <div className="flex space-x-2">
+            <button
+              onClick={handleColorClick}
+              className="btn btn-outline p-2"
+              title="Color"
+            >
+              <Palette className="h-5 w-5" />
+            </button>
+            <button
+              onClick={handleBrushClick}
+              className="btn btn-outline p-2"
+              title="Brush Size"
+            >
+              <span className="font-medium">{currentWidth}px</span>
+            </button>
+            <button
+              onClick={handleEraserClick}
+              className="btn btn-outline p-2"
+              title="Eraser"
+            >
+              <Eraser className="h-5 w-5" />
+            </button>
+          </div>
+          
+          <button
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            className="btn btn-outline p-2"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        </div>
+        
+        {showMobileMenu && (
+          <div className="absolute top-full left-0 right-0 mt-2 z-20 bg-white rounded-md shadow-lg p-3 border border-gray-200">
+            <div className="flex flex-col space-y-2">
+              <button
+                onClick={() => setShowPromptInput(!showPromptInput)}
+                className="btn btn-secondary p-2 flex items-center justify-center"
+              >
+                <Sparkles className="h-5 w-5 mr-2" />
+                AI Suggest
+              </button>
+              <button
+                onClick={handleSaveClick}
+                className="btn btn-outline p-2 flex items-center justify-center"
+              >
+                <Save className="h-5 w-5 mr-2" />
+                Save
+              </button>
+              <button
+                onClick={handleDownloadClick}
+                className="btn btn-outline p-2 flex items-center justify-center"
+              >
+                <Download className="h-5 w-5 mr-2" />
+                Download
+              </button>
+              <button
+                onClick={handleShareClick}
+                className="btn btn-outline p-2 flex items-center justify-center"
+              >
+                <Share2 className="h-5 w-5 mr-2" />
+                Share
+              </button>
+              <button
+                onClick={handleClearCanvas}
+                className="btn btn-outline p-2 flex items-center justify-center text-red-500"
+              >
+                <Trash2 className="h-5 w-5 mr-2" />
+                Clear Canvas
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

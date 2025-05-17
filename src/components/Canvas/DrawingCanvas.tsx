@@ -6,6 +6,7 @@ import { useAuthStore } from '../../store/authStore';
 
 const DrawingCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const {
     strokes,
     isDrawing,
@@ -18,43 +19,29 @@ const DrawingCanvas: React.FC = () => {
   const { user } = useAuthStore();
   const [currentStroke, setCurrentStroke] = useState<DrawingStroke | null>(null);
   
-  // Initialize canvas and draw existing strokes
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
     
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    // Set canvas size to match parent container
     const resizeCanvas = () => {
-      const container = canvas.parentElement;
-      if (container) {
-        canvas.width = container.clientWidth;
-        canvas.height = container.clientHeight;
-        
-        // Redraw all strokes when canvas is resized
-        drawStrokes(ctx, strokes);
-      }
+      const rect = container.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      drawStrokes(ctx, strokes);
     };
     
     resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    
+    const resizeObserver = new ResizeObserver(resizeCanvas);
+    resizeObserver.observe(container);
     
     return () => {
-      window.removeEventListener('resize', resizeCanvas);
+      resizeObserver.disconnect();
     };
-  }, []);
-  
-  // Redraw canvas when strokes change
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    drawStrokes(ctx, strokes);
   }, [strokes]);
   
   const drawStrokes = (ctx: CanvasRenderingContext2D, strokes: DrawingStroke[]) => {
@@ -70,7 +57,6 @@ const DrawingCanvas: React.FC = () => {
         const p0 = stroke.points[i - 1];
         const p1 = stroke.points[i];
         
-        // Use quadratic curves for smoother lines
         const cp = {
           x: (p0.x + p1.x) / 2,
           y: (p0.y + p1.y) / 2
@@ -95,21 +81,30 @@ const DrawingCanvas: React.FC = () => {
     });
   };
   
+  const getCanvasPoint = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY
+    };
+  };
+  
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!user) return;
     
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const point = getCanvasPoint(e);
     
     const newStroke: DrawingStroke = {
       id: Date.now().toString(),
-      points: [{ x, y, pressure: e.pressure }],
+      points: [{ ...point, pressure: e.pressure }],
       color: currentColor,
-      width: currentWidth * (e.pressure || 1), // Adjust width based on pressure
+      width: currentWidth * (e.pressure || 1),
       userId: user.id,
       timestamp: Date.now(),
     };
@@ -117,36 +112,29 @@ const DrawingCanvas: React.FC = () => {
     setCurrentStroke(newStroke);
     setIsDrawing(true);
     
-    // Capture pointer to receive events even when pointer leaves canvas
-    canvas.setPointerCapture(e.pointerId);
+    e.currentTarget.setPointerCapture(e.pointerId);
   };
   
   const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!isDrawing || !currentStroke || !user) return;
     
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const point = getCanvasPoint(e);
     
     const updatedStroke = {
       ...currentStroke,
-      points: [...currentStroke.points, { x, y, pressure: e.pressure }],
-      width: currentWidth * (e.pressure || 1), // Adjust width based on pressure
+      points: [...currentStroke.points, { ...point, pressure: e.pressure }],
+      width: currentWidth * (e.pressure || 1),
     };
     
     setCurrentStroke(updatedStroke);
     
-    // Draw the current stroke
-    const ctx = canvas.getContext('2d');
+    const ctx = canvasRef.current?.getContext('2d');
     if (ctx) {
       ctx.beginPath();
       
       if (updatedStroke.points.length > 1) {
         const p0 = updatedStroke.points[updatedStroke.points.length - 2];
-        const p1 = { x, y };
+        const p1 = point;
         
         const cp = {
           x: (p0.x + p1.x) / 2,
@@ -175,19 +163,21 @@ const DrawingCanvas: React.FC = () => {
   const handlePointerUp = () => {
     if (!isDrawing || !currentStroke || !user) return;
     
-    // Add the completed stroke to the store
     addStroke(currentStroke);
     setCurrentStroke(null);
     setIsDrawing(false);
   };
   
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col flex-1">
       <CanvasToolbar />
-      <div className="flex-1 relative overflow-hidden bg-white border border-gray-200 rounded-md shadow-inner">
+      <div 
+        ref={containerRef}
+        className="flex-1 relative overflow-hidden bg-white border border-gray-200 rounded-md shadow-inner"
+      >
         <canvas
           ref={canvasRef}
-          className="absolute top-0 left-0 w-full h-full canvas-container touch-none"
+          className="absolute top-0 left-0 w-full h-full touch-none"
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
