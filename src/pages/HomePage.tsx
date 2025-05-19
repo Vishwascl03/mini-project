@@ -45,7 +45,7 @@ const HomePage: React.FC = () => {
             </div>
             <div className="lg:w-1/2 flex justify-center lg:justify-end">
               <img
-                src="https://images.pexels.com/photos/3325717/pexels-photo-3325717.jpeg"
+                src="https://images.pexels.com/photos/5022847/pexels-photo-5022847.jpeg"
                 alt="Abstract Digital Art"
                 className="rounded-lg shadow-2xl max-w-full h-auto"
                 style={{ maxHeight: '400px' }}
