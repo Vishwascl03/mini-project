@@ -45,8 +45,8 @@ const HomePage: React.FC = () => {
             </div>
             <div className="lg:w-1/2 flex justify-center lg:justify-end">
               <img
-                src="https://images.pexels.com/photos/7149165/pexels-photo-7149165.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-                alt="Collaborative Art"
+                src="https://images.pexels.com/photos/3184657/pexels-photo-3184657.jpeg"
+                alt="Creative Collaboration"
                 className="rounded-lg shadow-2xl max-w-full h-auto"
                 style={{ maxHeight: '400px' }}
               />
